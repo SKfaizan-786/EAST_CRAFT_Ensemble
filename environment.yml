@@ -1,0 +1,53 @@
+name: east-implement
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.9
+  - pytorch=2.1.0
+  - torchvision=0.16.0
+  - torchaudio=2.1.0
+  - pytorch-cuda=11.8
+  - cudatoolkit=11.8
+  - numpy=1.24.4
+  - scipy=1.11.3
+  - matplotlib=3.8.0
+  - pandas=2.1.1
+  - scikit-learn=1.3.1
+  - scikit-image=0.21.0
+  - jupyter
+  - notebook
+  - pip
+  
+  - pip:
+    - opencv-python==4.8.1.78
+    - albumentations==1.3.1
+    - imgaug==0.4.0
+    - seaborn==0.12.2
+    - plotly==5.17.0
+    - PyYAML==6.0.1
+    - omegaconf==2.3.0
+    - hydra-core==1.3.2
+    - loguru==0.7.2
+    - tqdm==4.66.1
+    - wandb==0.15.12
+    - tensorboard==2.14.1
+    - pytest==7.4.2
+    - pytest-cov==4.1.0
+    - black==23.9.1
+    - flake8==6.1.0
+    - isort==5.12.0
+    - mypy==1.6.1
+    - requests==2.31.0
+    - fastapi==0.103.2
+    - uvicorn==0.23.2
+    - click==8.1.7
+    - python-dotenv==1.0.0
+    - psutil==5.9.6
+    - GPUtil==1.4.0
+    - onnx==1.14.1
+    - onnxruntime-gpu==1.16.1
+    - ipywidgets==8.1.1
+    - pre-commit==3.4.0
