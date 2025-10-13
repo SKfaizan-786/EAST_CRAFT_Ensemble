@@ -15,8 +15,16 @@ def read_readme():
 
 # Read requirements
 def read_requirements():
-    with open("requirements.txt", "r") as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+    # Use minimal requirements for initial setup
+    return [
+        "torch>=2.1.0",
+        "torchvision>=0.16.0", 
+        "opencv-python>=4.5.0",
+        "numpy>=1.21.0",
+        "PyYAML>=6.0.0",
+        "tqdm>=4.60.0",
+        "pytest>=7.0.0"
+    ]
 
 setup(
     name="east-implement",

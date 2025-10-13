@@ -2,9 +2,9 @@
 # Core Dependencies for PyTorch Scene Text Detection
 
 # Deep Learning Framework
-torch==2.1.0
-torchvision==0.16.0
-torchaudio==2.1.0
+torch>=2.1.0
+torchvision>=0.16.0
+torchaudio>=2.1.0
 
 # Computer Vision and Image Processing
 opencv-python==4.8.1.78

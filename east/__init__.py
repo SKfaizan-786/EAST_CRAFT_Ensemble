@@ -13,15 +13,17 @@ __version__ = "0.1.0"
 __author__ = "Faizan"
 __email__ = "your.email@example.com"
 
-from .models import EAST
-from .datasets import ICDARDataset
-from .losses import EASTLoss
-from .utils import *
+# Import only completed modules for now
+# TODO: Uncomment as modules are implemented
+# from .models import EAST  # Sprint 3
+# from .datasets import ICDARDataset  # Sprint 2 (in progress)
+# from .losses import EASTLoss  # Sprint 4
+# from .utils import *  # Various sprints
 
 __all__ = [
-    "EAST",
-    "ICDARDataset", 
-    "EASTLoss",
+    # "EAST",
+    # "ICDARDataset", 
+    # "EASTLoss",
     "__version__",
     "__author__"
 ]
