@@ -110,6 +110,8 @@ Evaluated using modified ICDAR 2015 evaluation framework:
 - **Recall**: Correctly detected / Total ground truth  
 - **F1-Score**: Harmonic mean of precision and recall
 
+**📝 Evaluation Note:** Ground truth data (`icdar_eval/`) is excluded from git due to licensing restrictions. Download from [ICDAR 2015 official source](https://rrc.cvc.uab.es/?ch=4&com=downloads) for reproduction.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -121,6 +123,47 @@ conda activate text_detection
 # Install dependencies
 pip install -r requirements.txt
 pip install craft-text-detector
+```
+
+### 📥 Required Data Downloads
+
+**⚠️ Note:** The following datasets are not included in this repository due to size constraints but are required for full reproduction:
+
+1. **ICDAR 2015 Dataset** 
+   - Download test images from [Kaggle - ICDAR 2015](https://www.kaggle.com/datasets/bestofbests9/icdar2015) (search "ICDAR 2015")
+   - Place in: `data/icdar2015/test_images/` (500 images)
+
+2. **Pre-trained Models**
+   - **EAST**: Download from [Kaggle - Frozen EAST Text Detection](https://www.kaggle.com/datasets/yelmurat/frozen-east-text-detection)
+     - File: `frozen_east_text_detection.pb` → `models/`
+   - **CRAFT**: Download from [CRAFT-pytorch Repository](https://github.com/clovaai/CRAFT-pytorch)
+     - File: `craft_mlt_25k.pth` → `models/`
+
+3. **ICDAR 2015 Ground Truth** 
+   - Download ground truth annotations from [ICDAR 2015 Competition](https://rrc.cvc.uab.es/?ch=4&com=downloads)
+   - Place in: `icdar_eval/gt/` 
+   - Required for evaluation metrics (5,230 text instances)
+
+**📦 Repository Structure After Downloads:**
+```
+EAST_CRAFT_Ensemble/
+├── data/icdar2015/test_images/    # 500 test images (from Kaggle)
+├── models/                       
+│   ├── frozen_east_text_detection.pb  # EAST model (from Kaggle)
+│   └── craft_mlt_25k.pth              # CRAFT model (from GitHub)
+├── icdar_eval/gt/               # Ground truth annotations (from ICDAR)
+└── sample_results/              # Demo results (included in git)
+```
+
+**🔗 Quick Download Commands:**
+```bash
+# Create directories
+mkdir -p data/icdar2015/test_images models icdar_eval/gt
+
+# Download models (manual download required)
+# 1. EAST: https://www.kaggle.com/datasets/yelmurat/frozen-east-text-detection
+# 2. CRAFT: https://github.com/clovaai/CRAFT-pytorch (check releases/models)
+# 3. ICDAR Dataset: Search "ICDAR 2015" on Kaggle or official site
 ```
 
 ### Usage
@@ -254,10 +297,10 @@ We initially considered greedy merge and Weighted Box Fusion (WBF) for ensemblin
 
 ## 🤝 Acknowledgments
 
-- **EAST Model**: Original implementation by OpenCV team
-- **CRAFT Model**: Character Region Awareness for Text detection
-- **ICDAR 2015**: Text localization evaluation dataset
-- **Choquet Integral**: Advanced fusion methodology
+- **EAST Model**: Pre-trained weights from [Kaggle - Frozen EAST Text Detection](https://www.kaggle.com/datasets/yelmurat/frozen-east-text-detection)
+- **CRAFT Model**: Original implementation and weights from [CRAFT-pytorch](https://github.com/clovaai/CRAFT-pytorch) by Clova AI
+- **ICDAR 2015**: Text localization evaluation dataset and ground truth
+- **Choquet Integral**: Advanced fusion methodology for ensemble learning
 
 ## 📄 License
 
