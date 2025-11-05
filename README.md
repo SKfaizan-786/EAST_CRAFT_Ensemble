@@ -14,7 +14,7 @@
 </div>
 
 <p align="center">
-  <img src="sample_results/visualizations/img_103_comparison.jpg" width="800">
+  <img src="sample_results/visualizations/img_100_comparison.jpg" width="800">
 </p>
 <p align="center"><i>Comparison of EAST (Red), CRAFT (Blue), and Choquet Fusion (Green)</i></p>
 
@@ -240,10 +240,17 @@ We initially considered greedy merge and Weighted Box Fusion (WBF) for ensemblin
 @misc{east_craft_choquet_2025,
   title={EAST+CRAFT Ensemble Text Detection using Choquet Integral Fusion},
   author={SK Faizanuddin},
+  email={faizanuddinsk56@gmail.com},
+  url={https://github.com/SKfaizan-786},
   year={2025},
   note={Implementation of Choquet integral fusion for scene text detection}
 }
 ```
+
+**Contact Information:**
+- 📧 Email: [faizanuddinsk56@gmail.com](mailto:faizanuddinsk56@gmail.com)
+- 🐙 GitHub: [@SKfaizan-786](https://github.com/SKfaizan-786)
+- 🔗 Repository: [EAST_CRAFT_Ensemble](https://github.com/SKfaizan-786/EAST_CRAFT_Ensemble)
 
 ## 🤝 Acknowledgments
 
