@@ -1,317 +1,234 @@
-# EAST+CRAFT Ensemble Text Detection using Choquet Integral Fusion
+# EAST + CRAFT Text Detection Ensemble
 
-> A fuzzy logic–based ensemble approach combining EAST and CRAFT for robust scene text detection on ICDAR 2015.
+Text detection ensemble combining EAST and CRAFT models for ICDAR 2015 dataset.
 
-<div align="center">
+## 🎯 Overview
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![OpenCV](https://img.shields.io/badge/OpenCV-4.12+-green.svg)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.8+-red.svg)
-![License](https://img.shields.io/badge/License-Academic-yellow.svg)
+This project implements an optimized ensemble of two state-of-the-art text detection models:
+- **EAST** (Efficient and Accurate Scene Text detector)
+- **CRAFT** (Character Region Awareness For Text detection)
 
-**A novel ensemble approach for scene text detection combining EAST and CRAFT models using Choquet integral fusion**
+The ensemble uses **Weighted Boxes Fusion (WBF)** with multi-tier IoU matching to achieve superior performance over individual models.
 
-</div>
+## 📊 Final Results
 
-<p align="center">
-  <img src="sample_results/visualizations/img_100_comparison.jpg" width="800">
-</p>
-<p align="center"><i>Comparison of EAST (Red), CRAFT (Blue), and Choquet Fusion (Green)</i></p>
+| Model | Precision | Recall | F1-Score |
+|-------|-----------|--------|----------|
+| **EAST** | 67.96% | 72.51% | **70.16%** |
+| **CRAFT** | 67.38% | 80.74% | **73.46%** |
+| **Ensemble (WBF)** | 69.72% | 80.36% | **74.66%** ✅ |
 
-## 📋 Abstract
+**Best Result: 74.66% F1** (+1.20% improvement over best individual model)
 
-This project implements an advanced ensemble text detection system that combines **EAST (Efficient Accurate Scene Text)** and **CRAFT (Character Region Awareness for Text detection)** models using **Choquet integral fusion**. The ensemble achieves improved recall (+54%) and balanced precision through fuzzy confidence fusion, outperforming EAST and matching CRAFT's localization accuracy on the ICDAR 2015 benchmark.
+## 🖼️ Visual Results
 
-## 📈 Key Results
+Below are side-by-side comparisons showing detection outputs from EAST (red), CRAFT (blue), and Ensemble (green) on 5 sample images from ICDAR 2015:
 
-<div align="center">
+### Sample 1: img_10
+![img_10_comparison](visualizations/img_10_comparison.jpg)
+*9 ground truth instances - All models perform well on this clear example*
 
-| Model | Precision | Recall | F1-Score | Improvement |
-|-------|-----------|--------|----------|-------------|
-| EAST | 0.3817 | 0.1302 | **0.1942** | baseline |
-| CRAFT | 0.6630 | 0.2294 | **0.3409** | baseline |
-| **Choquet Fusion** | **0.4828** | **0.2574** | **🏆 0.3357** | **+72.89% vs EAST** |
+### Sample 2: img_100
+![img_100_comparison](visualizations/img_100_comparison.jpg)
+*7 ground truth instances - Ensemble balances EAST and CRAFT detections*
 
-</div>
+### Sample 3: img_108
+![img_108_comparison](visualizations/img_108_comparison.jpg)
+*13 ground truth instances - Complex scene with multiple text regions*
 
-### 🏆 Performance Highlights
-- **+72.89%** F1-score improvement over EAST
-- **+54.1%** detection coverage increase
-- **Balanced precision-recall** trade-off
-- **2,789 total detections** vs ~1,800 individual models
+### Sample 4: img_112
+![img_112_comparison](visualizations/img_112_comparison.jpg)
+*13 ground truth instances - Ensemble achieves best coverage*
 
-## 📊 Visual Results
+### Sample 5: img_114
+![img_114_comparison](visualizations/img_114_comparison.jpg)
+*7 ground truth instances - Clean detection on storefront text*
 
-### Side-by-Side Comparison
-![Comparison](sample_results/visualizations/img_103_comparison.jpg)
-*EAST (Red) | CRAFT (Blue) | Choquet Fusion (Green)*
+**Key Observations:**
+- 🔴 **EAST** (Red): Good at detecting text in structured scenes, sometimes misses smaller text
+- 🔵 **CRAFT** (Blue): Better recall, captures more text instances including small ones
+- 🟢 **Ensemble** (Green): Combines strengths of both, filtering false positives while maintaining coverage
 
-### Overlay Visualization  
-![Overlay](sample_results/visualizations/img_103_overlay.jpg)
-*All models overlaid: Red=EAST, Blue=CRAFT, Green=Fusion*
+## 🎯 Project Structure
 
-## 🌟 Key Features
-
-- Pretrained **EAST (OpenCV)** and **CRAFT (PyTorch)** integration
-- **Choquet Integral fusion** for fuzzy confidence-based ensembling
-- Full ICDAR 2015 **evaluation and visualization pipeline**
-- **Parameter optimization** for best precision-recall balance
-- Ready-to-run **Colab-compatible** scripts and evaluation tools
-
-## 🧠 Methodology
-
-### Choquet Integral Fusion
-Our ensemble uses **Choquet integral fusion** with optimized parameters:
-- **a = 0.7**: EAST model weight
-- **b = 0.8**: CRAFT model weight  
-- **c = 0.95**: Joint detection confidence weight
-
-The Choquet integral provides sophisticated score fusion that considers both individual model confidences and their agreement, resulting in more robust text detection.
-
-### Pipeline Architecture
 ```
-Input Image
-    ↓
-┌─────────────┐         ┌──────────────┐
-│ EAST Model  │         │ CRAFT Model  │
-│ (640×640)   │         │ (Variable)   │
-└─────────────┘         └──────────────┘
-    ↓                         ↓
-┌─────────────┐         ┌──────────────┐
-│ Axis-aligned│         │ Character-   │
-│ Rectangles  │         │ level Polys  │
-└─────────────┘         └──────────────┘
-    ↓                         ↓
-    └─────────┬─────────────────┘
-              ↓
-    ┌─────────────────────┐
-    │ Choquet Integral    │
-    │ Fusion (IoU=0.5)    │
-    └─────────────────────┘
-              ↓
-    ┌─────────────────────┐
-    │ Fused Detections    │
-    │ (x1,y1,...,x4,y4,s) │
-    └─────────────────────┘
+EAST_CRAFT_Ensemble/
+├── data/                              # ICDAR 2015 dataset
+│   └── icdar2015/test_images/        # 500 test images
+├── models/                            # Pre-trained EAST & CRAFT models
+├── icdar_eval/                        # Evaluation scripts and ground truth
+├── outputs/
+│   ├── east_final_results/           # EAST detection outputs (F1: 70.16%)
+│   ├── craft_ensemble_ready/         # CRAFT detection outputs (F1: 73.46%)
+│   ├── ensemble_union_balanced/      # Final ensemble outputs (F1: 74.66%)
+│   └── ensemble_visualizations/      # Detection images for all 500 images
+├── visualizations/                    # Sample comparison images (for README)
+│   ├── img_10_comparison.jpg
+│   ├── img_100_comparison.jpg
+│   ├── img_108_comparison.jpg
+│   ├── img_112_comparison.jpg
+│   └── img_114_comparison.jpg
+│
+├── infer_east.py                      # Original EAST inference
+├── infer_craft.py                     # Original CRAFT inference
+├── craft.fin.2.ipynb                  # Optimized CRAFT implementation ⭐
+├── infer_east_final.ipynb             # Optimized EAST implementation ⭐
+├── infer_craft_refined_simple.py      # CRAFT with refined thresholds
+├── ensemble_choquet.py                # Original Choquet integral fusion
+├── ensemble_wbf_final.py              # Final WBF ensemble (BEST: 74.66% F1) ⭐
+├── ensemble_final.ipynb               # Final ensemble notebook (with visualizations) ⭐
+└── create_visualizations.py           # Script to generate comparison images
 ```
-
-## 🔬 Evaluation
-
-### Dataset
-- **ICDAR 2015 Text Localization**: 500 test images
-- **Ground Truth**: 5,230 text instances
-- **Evaluation Metric**: IoU threshold = 0.5
-- The ICDAR 2015 dataset is used under academic fair-use for research evaluation purposes.
-
-### ICDAR 2015 Official Protocol
-Evaluated using modified ICDAR 2015 evaluation framework:
-- **Intersection over Union (IoU)** based matching
-- **Precision**: Correctly detected / Total detected
-- **Recall**: Correctly detected / Total ground truth  
-- **F1-Score**: Harmonic mean of precision and recall
-
-**📝 Evaluation Note:** Ground truth data (`icdar_eval/`) is excluded from git due to licensing restrictions. Download from [ICDAR 2015 official source](https://rrc.cvc.uab.es/?ch=4&com=downloads) for reproduction.
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### 1. Run Individual Models
+
+**CRAFT (73.46% F1):**
 ```bash
-# Create environment
-conda create -n text_detection python=3.8
-conda activate text_detection
-
-# Install dependencies
-pip install -r requirements.txt
-pip install craft-text-detector
+jupyter notebook craft.fin.2.ipynb
+# Run all cells to generate outputs/craft_ensemble_ready/
 ```
 
-### 📥 Required Data Downloads
-
-**⚠️ Note:** The following datasets are not included in this repository due to size constraints but are required for full reproduction:
-
-1. **ICDAR 2015 Dataset** 
-   - Download test images from [Kaggle - ICDAR 2015](https://www.kaggle.com/datasets/bestofbests9/icdar2015) (search "ICDAR 2015")
-   - Place in: `data/icdar2015/test_images/` (500 images)
-
-2. **Pre-trained Models**
-   - **EAST**: Download from [Kaggle - Frozen EAST Text Detection](https://www.kaggle.com/datasets/yelmurat/frozen-east-text-detection)
-     - File: `frozen_east_text_detection.pb` → `models/`
-   - **CRAFT**: Download from [CRAFT-pytorch Repository](https://github.com/clovaai/CRAFT-pytorch)
-     - File: `craft_mlt_25k.pth` → `models/`
-
-3. **ICDAR 2015 Ground Truth** 
-   - Download ground truth annotations from [ICDAR 2015 Competition](https://rrc.cvc.uab.es/?ch=4&com=downloads)
-   - Place in: `icdar_eval/gt/` 
-   - Required for evaluation metrics (5,230 text instances)
-
-**📦 Repository Structure After Downloads:**
-```
-EAST_CRAFT_Ensemble/
-├── data/icdar2015/test_images/    # 500 test images (from Kaggle)
-├── models/                       
-│   ├── frozen_east_text_detection.pb  # EAST model (from Kaggle)
-│   └── craft_mlt_25k.pth              # CRAFT model (from GitHub)
-├── icdar_eval/gt/               # Ground truth annotations (from ICDAR)
-└── sample_results/              # Demo results (included in git)
-```
-
-**🔗 Quick Download Commands:**
+**EAST (70.16% F1):**
 ```bash
-# Create directories
-mkdir -p data/icdar2015/test_images models icdar_eval/gt
-
-# Download models (manual download required)
-# 1. EAST: https://www.kaggle.com/datasets/yelmurat/frozen-east-text-detection
-# 2. CRAFT: https://github.com/clovaai/CRAFT-pytorch (check releases/models)
-# 3. ICDAR Dataset: Search "ICDAR 2015" on Kaggle or official site
+jupyter notebook infer_east_final.ipynb
+# Run all cells to generate outputs/east_final_results/
 ```
 
-### Usage
+### 2. Run Ensemble (74.66% F1)
+
+**Option A - Jupyter Notebook (Recommended):**
 ```bash
-# Run individual models
-python infer_east.py    # EAST detection
-python infer_craft.py   # CRAFT detection
-
-# Run Choquet fusion ensemble
-python ensemble_choquet.py \
-    --east outputs/east_results \
-    --craft outputs/craft_results \
-    --out outputs/fusion_results \
-    --imgs data/icdar2015/test_images \
-    --a 0.7 --b 0.8 --c 0.95 --draw
-
-# Run complete optimization pipeline
-python final_optimization.py
+jupyter notebook ensemble_final.ipynb
+# Run all cells to generate:
+# - Text files: outputs/ensemble_union_balanced/
+# - Visualizations: outputs/ensemble_visualizations/ (500 images)
 ```
 
-## 📁 Repository Structure
-
-```
-EAST_CRAFT_Ensemble/
-├── 🔧 Core Implementation
-│   ├── infer_east.py              # EAST text detection
-│   ├── infer_craft.py             # CRAFT text detection
-│   ├── ensemble_choquet.py        # Choquet integral fusion ⭐
-│   └── final_optimization.py      # Parameter optimization
-│
-├── 🎨 Visualizations
-│   └── viz_overlay.py             # Comparison visualizations
-│
-├── 📊 Sample Results
-│   ├── sample_results/
-│   │   ├── visualizations/        # Example comparison images
-│   │   └── detection_outputs/     # Sample detection files
-│   │
-│   ├── EVALUATION_RESULTS.md      # Original evaluation
-│   └── FINAL_OPTIMIZATION_REPORT.md # Optimization analysis
-│
-└── ⚙️ Configuration
-    ├── requirements.txt           # Dependencies
-    └── README.md                 # This file
-```
-
-## 📈 Technical Details
-
-### Model Specifications
-- **EAST**: OpenCV DNN implementation with pretrained weights (`frozen_east_text_detection.pb`), 640×640 input, 0.5 score threshold
-- **CRAFT**: PyTorch implementation with pretrained weights (`craft_mlt_25k.pth`), character-level detection, 0.7 text threshold
-- **Fusion**: Choquet integral with IoU-based matching (threshold: 0.5)
-
-### Output Format
-Each detection saved as: `x1,y1,x2,y2,x3,y3,x4,y4,confidence_score`
-
-### Sample Detection Output
+**Option B - Python Script:**
 ```bash
-# EAST detection (img_103_east.txt)
-573,317,641,317,641,329,573,329,0.8534
-
-# CRAFT detection (img_103_craft.txt) 
-574,317,640,317,640,328,574,328,0.9000
-
-# Fusion result (img_103_fusion.txt)
-573,317,641,317,641,329,573,329,0.8700
+python ensemble_wbf_final.py
+# Generates only text files: outputs/ensemble_union_balanced/
 ```
 
-## 🔍 Key Insights
+### 3. Generate Comparison Visualizations
 
-### Why Choquet Integral?
-
-> This approach was guided by our objective to explore fuzzy logic–based ensemble techniques, as proposed in our research direction.
-
-1. **Sophisticated Fusion**: Goes beyond simple averaging or maximum operations
-2. **Adaptive Weighting**: Considers both individual and joint model confidences
-3. **Robust Performance**: Handles disagreement between models effectively
-4. **Parameter Optimization**: Fine-tunable for specific datasets
-
-### Ensemble Advantages
-- **Complementary Strengths**: EAST provides broad coverage, CRAFT ensures precision
-- **Improved Recall**: Captures text regions missed by individual models
-- **Balanced Performance**: Maintains precision while significantly improving coverage
-- **Robust Detection**: Less sensitive to individual model failures
-
-## 📊 Research Summary
-
-### Comparison Table (ICDAR 2015 Evaluation)
-
-| Model | Precision | Recall | F1-Score | Performance |
-|-------|-----------|--------|----------|-------------|
-| EAST | 0.3817 | 0.1302 | 0.1942 | baseline |
-| CRAFT | 0.6630 | 0.2294 | 0.3409 | +75.5% vs EAST |
-| **EAST + CRAFT (Choquet)** | **0.4828** | **0.2574** | **0.3357** | **↑ +72.9% vs EAST, competitive with CRAFT** |
-
-### Academic Contribution
-
-The proposed ensemble framework combines the EAST and CRAFT detectors using a Choquet integral–based fusion mechanism. The approach leverages both models' complementary strengths—EAST's broader region proposals and CRAFT's precise localization—to achieve balanced text detection. After optimization (a = 0.7, b = 0.8, c = 0.95), the ensemble achieved an F1-score of 0.3357, improving EAST by +72.9% and maintaining competitive performance with CRAFT. The fusion model significantly increased detection coverage (+54%) while preserving precision, confirming the robustness of fuzzy logic–based ensemble integration for scene-text detection.
-
-### Methodology Justification
-
-We initially considered greedy merge and Weighted Box Fusion (WBF) for ensembling. However, since our objective was not just coordinate averaging but confidence fusion based on model agreement, we adopted the Choquet integral. It provides a fuzzy logic–based formulation that models interaction between EAST and CRAFT predictions. The Choquet integral effectively combines the confidence maps from EAST and CRAFT while accounting for model interaction, improving detection robustness and reducing false positives from EAST while enhancing recall in complex scenes.
-
-## 🔮 Future Work
-
-- Explore **Weighted Box Fusion (WBF)** for comparison with fuzzy methods  
-- Extend Choquet fusion to **multi-model ensembling** (e.g., DBNet, PAN)  
-- Integrate transformer-based detectors (e.g., TrOCR, Vision Transformers)  
-- Deploy model using **FastAPI** or **Streamlit** for live inference demo  
-
-## 📝 Citation
-
-📚 **If you use this work, please reference:**  
-**SK Faizanuddin. EAST+CRAFT Ensemble Text Detection using Choquet Integral Fusion, 2025.**
-
-```bibtex
-@misc{east_craft_choquet_2025,
-  title={EAST+CRAFT Ensemble Text Detection using Choquet Integral Fusion},
-  author={SK Faizanuddin},
-  email={faizanuddinsk56@gmail.com},
-  url={https://github.com/SKfaizan-786},
-  year={2025},
-  note={Implementation of Choquet integral fusion for scene text detection}
-}
+```bash
+python create_visualizations.py
+# Creates side-by-side comparisons in visualizations/ folder
 ```
 
-**Contact Information:**
-- 📧 Email: [faizanuddinsk56@gmail.com](mailto:faizanuddinsk56@gmail.com)
-- 🐙 GitHub: [@SKfaizan-786](https://github.com/SKfaizan-786)
-- 🔗 Repository: [EAST_CRAFT_Ensemble](https://github.com/SKfaizan-786/EAST_CRAFT_Ensemble)
+## 📈 Model Details
 
-## 🤝 Acknowledgments
+### EAST (Efficient and Accurate Scene Text)
+- **Architecture:** Fully Convolutional Network with rotated bounding boxes
+- **Backbone:** PVANet
+- **Processing:** Letterbox preprocessing, NMS with IoU 0.2
+- **Confidence threshold:** 0.8
+- **Result:** 70.16% F1
 
-- **EAST Model**: Pre-trained weights from [Kaggle - Frozen EAST Text Detection](https://www.kaggle.com/datasets/yelmurat/frozen-east-text-detection)
-- **CRAFT Model**: Original implementation and weights from [CRAFT-pytorch](https://github.com/clovaai/CRAFT-pytorch) by Clova AI
-- **ICDAR 2015**: Text localization evaluation dataset and ground truth
-- **Choquet Integral**: Advanced fusion methodology for ensemble learning
+### CRAFT (Character Region Awareness For Text)
+- **Architecture:** VGG-16 backbone with region score + affinity score maps
+- **Key Settings:** text_threshold=0.7, link_threshold=0.4, no RefineNet
+- **Processing:** 2240px long_size, box cropping
+- **Result:** 73.46% F1
+- **Note:** CRAFT visualization images (10 samples only) are available in [craft.fin.2.ipynb](craft.fin.2.ipynb)
 
-## 📄 License
+### Ensemble Strategy (WBF with Multi-Tier Matching)
+- **Method:** Weighted Boxes Fusion with intelligent filtering
+- **Fusion Tiers:**
+  - **Strong agreement** (IoU ≥ 0.35): IoU-weighted confidence boost
+  - **Medium agreement** (IoU 0.28-0.35): strict confidence filtering (≥0.73, area ≥320px)
+  - **High-confidence singletons:** CRAFT ≥0.86 OR (≥0.79 AND area ≥700px)
+- **Shape Validation:**
+  - Minimum area: 200px
+  - Aspect ratio: 0.3-15.0 (realistic text bounds)
+  - Progressive confidence by size (smaller = higher confidence required)
+- **NMS:** Ultra-aggressive (IoU 0.25) for duplicate removal
+- **Result:** 74.66% F1 (+1.20% improvement)
 
-This project is intended for academic and research purposes.
+## 📊 Evaluation Metrics
+
+**ICDAR 2015 Protocol:**
+- **Dataset:** 500 test images, 2,077 ground truth text instances
+- **Matching:** IoU threshold = 0.5
+- **Precision:** TP / (TP + FP)
+- **Recall:** TP / (TP + FN)
+- **F1-Score:** 2 × (Precision × Recall) / (Precision + Recall)
+
+**Final Ensemble Results:**
+- TP: 1,669 | FP: 725 | FN: 408
+- Precision: 69.72% | Recall: 80.36% | F1: 74.66%
+
+## 📝 Key Findings
+
+1. **CRAFT outperforms EAST** on ICDAR 2015 (73.46% vs 70.16%)
+2. **Ensemble achieves modest gains** (+1.20%) through intelligent box filtering
+3. **Multi-tier IoU matching** captures both strong and medium agreements
+4. **Shape validation** cuts false positives from weird aspect ratios
+5. **Box-level fusion ceiling:** ~74-75% F1 with these individual models
+
+### Why Not Higher?
+
+To exceed 75% F1, you need:
+- **Better individual models** (75%+ F1 each)
+- **Score map (pixel-level) fusion** instead of box-level
+- **Different architectures** with less correlation
+
+## 🛠️ Requirements
+
+```
+numpy<2.0
+opencv-python
+shapely
+tqdm
+torch
+torchvision
+scikit-image
+```
+
+Install: `pip install -r requirements.txt`
+
+**Important:** `numpy<2.0` is required for compatibility with ensemble-boxes library.
+
+## 📁 Output Files
+
+After running the complete pipeline, you will have:
+
+1. **Text Detection Files:**
+   - `outputs/east_final_results/` - 500 EAST detection files (*_east_boxes.txt)
+   - `outputs/craft_ensemble_ready/` - 500 CRAFT detection files (*_craft_boxes.txt)
+   - `outputs/ensemble_union_balanced/` - 500 Ensemble detection files (*_fused.txt)
+
+2. **Visualization Images:**
+   - `outputs/ensemble_visualizations/` - 500 detection images showing ensemble results
+   - `visualizations/` - 5 side-by-side comparison images (EAST | CRAFT | Ensemble)
+
+3. **Format:** All detection files use ICDAR 2015 format:
+   ```
+   x1,y1,x2,y2,x3,y3,x4,y4,confidence
+   ```
+
+## 📧 Contact
+
+**SK Faizanuddin**
+Email: faizanuddinsk56@gmail.com
+GitHub: [@SKfaizan-786](https://github.com/SKfaizan-786)
+
+## 🙏 Acknowledgments
+
+- **EAST:** Zhou et al., CVPR 2017
+- **CRAFT:** Baek et al., CVPR 2019
+- **ICDAR 2015:** Robust Reading Competition dataset
+- **Weighted Boxes Fusion:** ZFTurbo ensemble-boxes library
 
 ---
 
 <div align="center">
 
-**⭐ Star this repo if you find it useful for your research! ⭐**
+**⭐ Final Result: 74.66% F1-Score ⭐**
 
-*Last Updated: November 5, 2025*
+*Optimized ensemble of EAST and CRAFT for scene text detection*
 
 </div>

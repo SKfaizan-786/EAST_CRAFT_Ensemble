@@ -5,3 +5,5 @@ matplotlib
 scipy
 shapely
 tqdm
+pyclipper
+opencv-python
