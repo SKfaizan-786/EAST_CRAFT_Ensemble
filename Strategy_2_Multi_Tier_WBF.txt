@@ -1,0 +1,192 @@
+================================================================================
+        3.4.2 STRATEGY 2: MULTI-TIER WEIGHTED BOX FUSION (WBF)
+================================================================================
+
+OVERVIEW:
+The Multi-Tier Weighted Box Fusion strategy implements a sophisticated ensemble 
+approach that combines predictions from EAST and CRAFT models through a 
+hierarchical matching and fusion mechanism. Unlike traditional WBF that uses a 
+single IoU threshold, this strategy employs multiple tiers with progressively 
+relaxed matching criteria and corresponding validation requirements.
+
+--------------------------------------------------------------------------------
+TIER 1A: STRONG AGREEMENT MATCHING
+--------------------------------------------------------------------------------
+Objective: Capture high-quality matches where both models strongly agree
+
+IoU Threshold: >= 0.35
+Minimum Confidence: >= 0.60 (CRAFT boxes)
+Validation: Must pass shape validation (is_valid_text_box)
+
+Confidence Scoring Formula:
+  combined_conf = max(craft_score, east_score)
+  avg_conf = (craft_score + east_score) / 2.0
+  iou_weight = (iou - 0.35) / 0.65
+  final_score = combined_conf × (1.0 + 0.15 × iou_weight) + 0.05 × avg_conf
+  final_score = min(1.0, final_score)
+
+Final Threshold: >= 0.66
+
+Rationale: Strong agreement indicates high confidence detections. IoU-weighted 
+scoring rewards better spatial alignment while maintaining conservative 
+confidence requirements.
+
+--------------------------------------------------------------------------------
+TIER 1B: MEDIUM AGREEMENT MATCHING
+--------------------------------------------------------------------------------
+Objective: Capture moderate overlap cases with stricter validation
+
+IoU Range: 0.28 to 0.35 (exclusive upper bound)
+Minimum Confidence: >= 0.67 (CRAFT boxes)
+Validation: Must pass shape validation
+
+Confidence Scoring:
+  combined_conf = max(craft_score, east_score)
+
+Strict Requirements:
+  - combined_conf >= 0.75
+  - area >= 350 pixels
+
+Rationale: Medium overlap requires higher confidence and larger area to ensure 
+quality. This tier prevents false positives from weak agreements while still 
+capturing valid detections that don't meet strong agreement criteria.
+
+--------------------------------------------------------------------------------
+TIER 2: HIGH-CONFIDENCE CRAFT SINGLETONS
+--------------------------------------------------------------------------------
+Objective: Include high-quality CRAFT detections without EAST agreement
+
+Validation: Must pass shape validation (is_valid_text_box)
+
+Acceptance Criteria (either condition):
+  1. craft_score >= 0.87, OR
+  2. craft_score >= 0.80 AND area >= 750 pixels
+
+Rationale: CRAFT excels at character-level detection and may detect text 
+instances missed by EAST. Ultra-strict thresholds ensure only high-confidence 
+singletons are included, preventing false positives.
+
+--------------------------------------------------------------------------------
+TIER 3: HIGH-CONFIDENCE EAST SINGLETONS
+--------------------------------------------------------------------------------
+Objective: Include high-quality EAST detections without CRAFT agreement
+
+Validation: Must pass shape validation (is_valid_text_box)
+
+Acceptance Criteria (both conditions required):
+  - east_score >= 0.70
+  - area >= 850 pixels
+
+Additional Check:
+  - No overlap with existing boxes (IoU > 0.20)
+
+Rationale: EAST provides efficient region-level detection. Slightly relaxed 
+confidence but larger area requirement ensures quality. Overlap check prevents 
+duplicates with already accepted boxes.
+
+--------------------------------------------------------------------------------
+TIER 4: ULTRA-AGGRESSIVE SOFT-NMS
+--------------------------------------------------------------------------------
+Objective: Final duplicate removal across all accepted boxes
+
+Algorithm: Soft Non-Maximum Suppression
+IoU Threshold: 0.29
+
+Process:
+  1. Sort all boxes by confidence (descending)
+  2. For each box, check IoU with all previously kept boxes
+  3. If IoU > 0.29 with any kept box, discard current box
+  4. Otherwise, add to final output
+
+Rationale: Aggressive NMS threshold ensures minimal redundancy in final 
+predictions while preserving distinct text instances.
+
+--------------------------------------------------------------------------------
+SHAPE VALIDATION FUNCTION (is_valid_text_box)
+--------------------------------------------------------------------------------
+Applied to all boxes before acceptance in any tier.
+
+Minimum Area: 200 pixels
+
+Aspect Ratio Constraints: 0.3 to 15.0
+  - Filters unrealistic shapes (too square or too elongated)
+  - Typical text has width/height ratio in this range
+
+Progressive Confidence Requirements by Size:
+  - area < 230 pixels: score >= 0.87
+  - area < 280 pixels: score >= 0.83
+  - area < 350 pixels: score >= 0.80
+
+Rationale: Smaller boxes are more prone to false positives, requiring higher 
+confidence. Aspect ratio filtering eliminates non-text shapes.
+
+--------------------------------------------------------------------------------
+SCORE ADJUSTMENT FOR EAST PREDICTIONS
+--------------------------------------------------------------------------------
+EAST Score Calibration: east_score × 0.7
+
+Rationale: EAST confidence scores tend to be overestimated. Calibration factor 
+brings EAST scores into comparable range with CRAFT scores, ensuring fair 
+fusion weighting.
+
+--------------------------------------------------------------------------------
+IMPLEMENTATION WORKFLOW
+--------------------------------------------------------------------------------
+1. Load EAST and CRAFT predictions from text files
+2. Apply score calibration to EAST boxes (multiply by 0.7)
+3. Execute Tier 1A: Strong agreement matching (IoU >= 0.35)
+   - Mark matched CRAFT and EAST boxes as "used"
+4. Execute Tier 1B: Medium agreement matching (IoU 0.28-0.35)
+   - Only consider unused boxes from previous tier
+5. Execute Tier 2: Add high-confidence CRAFT singletons
+   - Only consider unused CRAFT boxes
+6. Execute Tier 3: Add high-confidence EAST singletons
+   - Only consider unused EAST boxes
+   - Check overlap with all accepted boxes
+7. Execute Tier 4: Apply Soft-NMS (IoU threshold 0.29)
+8. Save final fused predictions
+
+--------------------------------------------------------------------------------
+PERFORMANCE RESULTS (ICDAR 2015 Dataset - 500 Images)
+--------------------------------------------------------------------------------
+Ensemble F1-Score: 74.66%
+Precision: 69.72%
+Recall: 80.36%
+
+Comparison with Individual Models:
+  - EAST:  Precision 67.96%, Recall 72.51%, F1 70.16%
+  - CRAFT: Precision 67.38%, Recall 80.74%, F1 73.46%
+
+Improvement: +1.20% F1-score over best individual model (CRAFT)
+
+Detection Statistics:
+  - True Positives: 1,669
+  - False Positives: 725
+  - False Negatives: 408
+  - Ground Truth: 2,077
+
+Processing Speed: ~16.74 images/second
+
+--------------------------------------------------------------------------------
+KEY ADVANTAGES OF MULTI-TIER STRATEGY
+--------------------------------------------------------------------------------
+1. Hierarchical Matching: Captures both strong and moderate agreements with 
+   appropriate validation for each level
+
+2. Model-Specific Strengths: Leverages CRAFT's character-level precision and 
+   EAST's region-level efficiency through singleton tiers
+
+3. Progressive Validation: Smaller/weaker detections face stricter requirements, 
+   reducing false positives
+
+4. Confidence Calibration: EAST score adjustment ensures fair fusion weighting
+
+5. Comprehensive Filtering: Shape validation, aspect ratio checks, and 
+   aggressive NMS eliminate noise and duplicates
+
+6. Balanced Performance: Achieves high recall (80.36%) while maintaining 
+   reasonable precision (69.72%)
+
+================================================================================
+                              END OF STRATEGY 2
+================================================================================
