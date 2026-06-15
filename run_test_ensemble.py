@@ -10,15 +10,15 @@ from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 # ── Paths ────────────────────────────────────────────────────────────────────
-IMAGE_PATH       = "test.jpeg"
+IMAGE_PATH       = "img_178.jpg"
 EAST_MODEL       = "models/frozen_east_text_detection.pb"
 CRAFT_MODEL      = "models/craft_mlt_25k.pth"
-OUTPUT_PATH      = "test_multitierWBF.png"
+OUTPUT_PATH      = "img_178_multitierWBF.png"
 
 # ── EAST params ───────────────────────────────────────────────────────────────
-EAST_SIZE        = 640
-EAST_SCORE_THR   = 0.50
-EAST_NMS_THR     = 0.40
+EAST_SIZE        = 1280
+EAST_SCORE_THR   = 0.80
+EAST_NMS_THR     = 0.20
 EAST_MIN_AREA    = 80
 EAST_MIN_H       = 10
 
