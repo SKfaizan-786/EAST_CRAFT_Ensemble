@@ -5,7 +5,9 @@ Test image inference -> output: test_multitierWBF.png
 - Red boxes only, no heading, no caption, no border, 300 DPI
 """
 
-import os, cv2, numpy as np
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
+import cv2, numpy as np
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
@@ -228,18 +230,47 @@ def main():
     print(f"Mode: {mode}")
     print(f"Ensemble: {len(fused)} boxes after fusion")
 
-    # Draw: RED boxes only, no heading, no caption
-    out = img.copy()
-    for poly, _ in fused:
-        pts = poly.astype(np.int32).reshape(-1,1,2)
-        cv2.polylines(out, [pts], True, (0,0,255), 2)   # RED
+    # Draw and Save at 300 DPI (upscaled to match high-res requirements)
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Polygon as MatplotlibPolygon
 
-    # Save at 300 DPI as PNG using PIL for DPI metadata
-    from PIL import Image as PILImage
-    out_rgb = cv2.cvtColor(out, cv2.COLOR_BGR2RGB)
-    pil_img = PILImage.fromarray(out_rgb)
-    pil_img.save(OUTPUT_PATH, dpi=(300, 300))
-    print(f"\nSaved: {OUTPUT_PATH}")
+    H, W, _ = img.shape
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    # Scale the figure size so that @300 DPI it results in a high-res image
+    # (e.g. 1280x720 -> 12.8x7.2 inches -> 3840x2160 pixels)
+    fig = plt.figure(figsize=(W / 100, H / 100), frameon=False)
+    ax = plt.Axes(fig, [0., 0., 1., 1.])
+    ax.set_axis_off()
+    fig.add_axes(ax)
+
+    # Show the image
+    ax.imshow(img_rgb, aspect='auto')
+
+    # Draw red polygons
+    for poly, _ in fused:
+        # poly is a Nx2 array of points
+        pat = MatplotlibPolygon(poly, closed=True, fill=False, edgecolor='red', linewidth=3)
+        ax.add_patch(pat)
+
+    # Force tight limits
+    ax.set_xlim(0, W)
+    ax.set_ylim(H, 0)
+
+    # Save output using high-res Matplotlib
+    plt.savefig(OUTPUT_PATH, dpi=300, bbox_inches='tight', pad_inches=0, facecolor='white')
+    plt.close(fig)
+
+    # Verify and print details
+    saved_img = cv2.imread(OUTPUT_PATH)
+    if saved_img is not None:
+        sh, sw = saved_img.shape[:2]
+        print(f"\nSaved high-res image: {OUTPUT_PATH}")
+        print(f"Dimensions  : {sw}x{sh} pixels")
+    else:
+        print(f"\nSaved: {OUTPUT_PATH}")
     print(f"Boxes drawn : {len(fused)}")
     print(f"DPI         : 300x300")
     print(f"Mode        : {mode}")
